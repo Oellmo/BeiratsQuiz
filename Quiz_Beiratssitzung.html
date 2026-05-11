@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vorstands-Team-Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            border-radius: 24px;
+        }
+
+        .answer-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 3px solid transparent;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .answer-card:not(.disabled):hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .selected-t1 { border-color: #2563eb !important; background-color: #eff6ff !important; }
+        .selected-t2 { border-color: #dc2626 !important; background-color: #fef2f2 !important; }
+        .selected-both {
+            border-color: #9333ea !important;
+            background: linear-gradient(to bottom right, #eff6ff, #fef2f2) !important;
+        }
+
+        .is-correct {
+            border-color: #22c55e !important;
+            background-color: #f0fdf4 !important;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2) !important;
+        }
+
+        .is-wrong {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+        }
+
+        .checkmark-pill {
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 800;
+            color: white;
+            transform: scale(0);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            z-index: 20;
+        }
+
+        .checkmark-pill.active { transform: scale(1); }
+        .checkmark-pill:hover { filter: brightness(1.2); transform: scale(1.1); }
+
+        .bg-team1 { background-color: #2563eb; }
+        .bg-team2 { background-color: #dc2626; }
+        
+        .result-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            z-index: 10;
+        }
+
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        .csv-format-box {
+            background: #f1f5f9;
+            border-left: 4px solid #64748b;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #475569;
+            margin-top: 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <nav class="flex items-center justify-between px-10 py-6">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl font-extrabold tracking-tighter text-blue-900 uppercase">Therapie.Quiz</span>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Team Blau</span>
+                <div class="bg-blue-600 text-white px-5 py-2 rounded-full text-lg font-black shadow-lg shadow-blue-200">
+                    <span id="score-t1">0</span> <small class="text-xs opacity-70">PTS</small>
+                </div>
+            </div>
+            <div class="text-2xl font-black text-slate-300 italic">VS</div>
+            <div class="flex flex-col items-start">
+                <span class="text-[10px] font-black uppercase text-red-600 tracking-widest">Team Rot</span>
+                <div class="bg-red-600 text-white px-5 py-2 rounded-full text-lg font-black shadow-lg shadow-red-200">
+                    <span id="score-t2">0</span> <small class="text-xs opacity-70">PTS</small>
+                </div>
+            </div>
+        </div>
+        <button onclick="toggleAdminModal()" class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center hover:bg-slate-300 transition-colors" title="Einstellungen">⚙️</button>
+    </nav>
+
+    <main class="flex-1 flex flex-col items-center px-4 max-w-6xl mx-auto w-full pt-4">
+        
+        <!-- Status Banner -->
+        <div id="turn-banner" class="w-full max-w-md bg-blue-600 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl shadow-blue-200 transition-all duration-300">
+            Team Blau wählt...
+        </div>
+
+        <!-- Question Card -->
+        <div class="glass-card w-full py-12 px-12 text-center relative mb-8">
+            <h2 class="text-xs font-black text-blue-600 uppercase tracking-widest mb-4" id="topic-title">Laden...</h2>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight" id="question-text">Wird geladen...</h1>
+        </div>
+
+        <!-- Options Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-10">
+            <!-- Card 0 -->
+            <div onclick="handleCardClick(0)" id="card-0" class="answer-card glass-card p-10 text-center flex flex-col items-center justify-center min-h-[220px]">
+                <div id="badge-0" class="result-badge hidden">Richtig</div>
+                <h3 class="text-4xl font-black text-slate-800 mb-2" id="opt0-val">-</h3>
+                <p class="text-sm text-slate-500 font-semibold" id="opt0-desc">-</p>
+                <div class="flex gap-3 mt-4">
+                    <div onclick="event.stopPropagation(); deselectTeam(1)" id="pill-0-t1" class="checkmark-pill bg-team1">TEAM 1</div>
+                    <div onclick="event.stopPropagation(); deselectTeam(2)" id="pill-0-t2" class="checkmark-pill bg-team2">TEAM 2</div>
+                </div>
+            </div>
+
+            <!-- Card 1 -->
+            <div onclick="handleCardClick(1)" id="card-1" class="answer-card glass-card p-10 text-center flex flex-col items-center justify-center min-h-[220px]">
+                <div id="badge-1" class="result-badge hidden">Richtig</div>
+                <h3 class="text-4xl font-black text-slate-800 mb-2" id="opt1-val">-</h3>
+                <p class="text-sm text-slate-500 font-semibold" id="opt1-desc">-</p>
+                <div class="flex gap-3 mt-4">
+                    <div onclick="event.stopPropagation(); deselectTeam(1)" id="pill-1-t1" class="checkmark-pill bg-team1">TEAM 1</div>
+                    <div onclick="event.stopPropagation(); deselectTeam(2)" id="pill-1-t2" class="checkmark-pill bg-team2">TEAM 2</div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div onclick="handleCardClick(2)" id="card-2" class="answer-card glass-card p-10 text-center flex flex-col items-center justify-center min-h-[220px]">
+                <div id="badge-2" class="result-badge hidden">Richtig</div>
+                <h3 class="text-4xl font-black text-slate-800 mb-2" id="opt2-val">-</h3>
+                <p class="text-sm text-slate-500 font-semibold" id="opt2-desc">-</p>
+                <div class="flex gap-3 mt-4">
+                    <div onclick="event.stopPropagation(); deselectTeam(1)" id="pill-2-t1" class="checkmark-pill bg-team1">TEAM 1</div>
+                    <div onclick="event.stopPropagation(); deselectTeam(2)" id="pill-2-t2" class="checkmark-pill bg-team2">TEAM 2</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Info & Action Button -->
+        <div class="w-full flex justify-between items-center pb-10">
+            <div class="text-sm font-bold text-slate-400">
+                FRAGE <span id="current-q-num">1</span>/<span id="total-q-num">3</span>
+            </div>
+            
+            <button onclick="handleActionButton()" id="action-btn" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black hover:bg-blue-700 transition-all flex items-center gap-3 uppercase tracking-widest shadow-2xl opacity-50 cursor-not-allowed" disabled>
+                <span id="btn-text">Auflösung anzeigen</span> <span class="text-xl">→</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b flex justify-between items-start bg-slate-50">
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-slate-800">Fragen verwalten</h2>
+                    <p class="text-[10px] text-blue-600 mt-1 uppercase font-black tracking-wider">🔒 Lokal auf diesem Rechner gespeichert</p>
+                    
+                    <div class="csv-format-box">
+                        <strong>CSV Aufbau (Semikolon-getrennt):</strong><br>
+                        Thema; Frage; Wert1; Erklär1; Wert2; Erklär2; Wert3; Erklär3; KorrektIndex(0-2)
+                    </div>
+                </div>
+                <div class="flex gap-2 ml-4">
+                    <label class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-blue-700 shadow-sm transition-all active:scale-95">
+                        CSV Import
+                        <input type="file" id="csv-file" accept=".csv" class="hidden" onchange="importCSV(this)">
+                    </label>
+                    <button onclick="addNewQuestion()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 shadow-sm active:scale-95 transition-all">+ Frage</button>
+                    <button onclick="toggleAdminModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold px-2">&times;</button>
+                </div>
+            </div>
+            <div id="questions-list" class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+                <!-- Fragen Liste wird hier generiert -->
+            </div>
+            <div class="p-6 border-t bg-slate-50 flex justify-between items-center">
+                <button onclick="resetToDefault()" class="text-xs font-bold text-red-500 uppercase hover:underline">Alle löschen & Reset</button>
+                <div class="flex gap-3">
+                    <button onclick="toggleAdminModal()" class="px-6 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-all">Abbrechen</button>
+                    <button onclick="saveAllQuestions()" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-blue-900 transition-all active:scale-95">Speichern & Quiz Starten</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Standardfragen als Fallback
+        const DEFAULT_QUESTIONS = [
+            {
+                topic: "Statistik",
+                q: "Wie viele Behandlungen gab es letztes Jahr?",
+                opts: [
+                    { val: "8.420", desc: "Etwas weniger" },
+                    { val: "12.150", desc: "Unser Höchstwert" },
+                    { val: "10.800", desc: "Guter Durchschnitt" }
+                ],
+                correct: 1
+            }
+        ];
+
+        let questions = [];
+        let currentIdx = 0;
+        let scoreT1 = 0;
+        let scoreT2 = 0;
+        let selectedT1 = null;
+        let selectedT2 = null;
+        let isRevealed = false;
+
+        // --- LocalStorage Logik ---
+
+        function loadQuestions() {
+            const saved = localStorage.getItem('therapy_quiz_questions');
+            if (saved) {
+                try {
+                    questions = JSON.parse(saved);
+                } catch(e) {
+                    questions = [...DEFAULT_QUESTIONS];
+                }
+            } else {
+                questions = [...DEFAULT_QUESTIONS];
+            }
+        }
+
+        function persistQuestions() {
+            localStorage.setItem('therapy_quiz_questions', JSON.stringify(questions));
+        }
+
+        function resetToDefault() {
+            if(confirm("Bist du sicher? Alle eingegebenen Fragen werden gelöscht.")) {
+                questions = [...DEFAULT_QUESTIONS];
+                persistQuestions();
+                renderAdminQuestions();
+                saveAllQuestions();
+            }
+        }
+
+        // --- Admin Menü Funktionen ---
+
+        function toggleAdminModal() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderAdminQuestions();
+            }
+        }
+
+        function renderAdminQuestions() {
+            const list = document.getElementById('questions-list');
+            list.innerHTML = '';
+            
+            questions.forEach((q, qIdx) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "p-6 border border-slate-200 rounded-2xl bg-white shadow-sm relative";
+                qDiv.innerHTML = `
+                    <button onclick="removeQuestion(${qIdx})" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Löschen</button>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Kategorie</label>
+                            <input type="text" value="${q.topic}" oninput="updateTempQuestion(${qIdx}, 'topic', this.value)" class="w-full p-2 border rounded-lg bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Frage</label>
+                            <input type="text" value="${q.q}" oninput="updateTempQuestion(${qIdx}, 'q', this.value)" class="w-full p-2 border rounded-lg bg-slate-50">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        ${q.opts.map((opt, oIdx) => `
+                            <div class="p-3 border rounded-xl ${q.correct === oIdx ? 'bg-green-50 border-green-300' : 'bg-white'}">
+                                <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                                    <input type="radio" name="correct-${qIdx}" ${q.correct === oIdx ? 'checked' : ''} onchange="updateTempQuestion(${qIdx}, 'correct', ${oIdx})">
+                                    <span class="text-[10px] font-bold uppercase text-slate-500">Antwort ${oIdx+1}</span>
+                                </label>
+                                <input type="text" value="${opt.val}" placeholder="Wert" oninput="updateTempOption(${qIdx}, ${oIdx}, 'val', this.value)" class="w-full p-2 border rounded-lg mb-1 text-sm font-bold">
+                                <input type="text" value="${opt.desc}" placeholder="Erklärung" oninput="updateTempOption(${qIdx}, ${oIdx}, 'desc', this.value)" class="w-full p-2 border rounded-lg text-xs italic">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                list.appendChild(qDiv);
+            });
+        }
+
+        function updateTempQuestion(qIdx, field, value) {
+            questions[qIdx][field] = value;
+            if(field === 'correct') renderAdminQuestions();
+        }
+
+        function updateTempOption(qIdx, oIdx, field, value) {
+            questions[qIdx].opts[oIdx][field] = value;
+        }
+
+        function addNewQuestion() {
+            questions.push({
+                topic: "Neues Thema",
+                q: "Neue Frage?",
+                opts: [{val:"",desc:""},{val:"",desc:""},{val:"",desc:""}],
+                correct: 0
+            });
+            renderAdminQuestions();
+        }
+
+        function removeQuestion(idx) {
+            if(questions.length > 1) {
+                questions.splice(idx, 1);
+                renderAdminQuestions();
+            }
+        }
+
+        function saveAllQuestions() {
+            persistQuestions();
+            currentIdx = 0;
+            scoreT1 = 0;
+            scoreT2 = 0;
+            document.getElementById('score-t1').innerText = "0";
+            document.getElementById('score-t2').innerText = "0";
+            toggleAdminModal();
+            updateUI();
+        }
+
+        function importCSV(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const rows = text.split(/\r?\n/);
+                const imported = [];
+                rows.forEach(row => {
+                    if (!row.trim()) return;
+                    const cols = row.split(';');
+                    if (cols.length >= 9) {
+                        imported.push({
+                            topic: cols[0].trim(),
+                            q: cols[1].trim(),
+                            opts: [
+                                { val: cols[2].trim(), desc: cols[3].trim() },
+                                { val: cols[4].trim(), desc: cols[5].trim() },
+                                { val: cols[6].trim(), desc: cols[7].trim() }
+                            ],
+                            correct: parseInt(cols[8].trim()) || 0
+                        });
+                    }
+                });
+                if (imported.length > 0) {
+                    questions = imported;
+                    renderAdminQuestions();
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Spiellogik ---
+
+        function updateUI() {
+            if (questions.length === 0) return;
+            const q = questions[currentIdx];
+            document.getElementById('topic-title').innerText = q.topic;
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('current-q-num').innerText = currentIdx + 1;
+            document.getElementById('total-q-num').innerText = questions.length;
+            
+            selectedT1 = null;
+            selectedT2 = null;
+            isRevealed = false;
+            
+            document.getElementById('btn-text').innerText = "Auflösung anzeigen";
+            updateTurnIndicator();
+            resetCards();
+            updateActionButton();
+        }
+
+        function resetCards() {
+            const q = questions[currentIdx];
+            for(let i=0; i<3; i++) {
+                document.getElementById(`opt${i}-val`).innerText = q.opts[i].val;
+                document.getElementById(`opt${i}-desc`).innerText = q.opts[i].desc;
+                const card = document.getElementById(`card-${i}`);
+                card.className = "answer-card glass-card p-10 text-center flex flex-col items-center justify-center min-h-[220px]";
+                document.getElementById(`pill-${i}-t1`).classList.remove('active');
+                document.getElementById(`pill-${i}-t2`).classList.remove('active');
+                document.getElementById(`badge-${i}`).className = "result-badge hidden";
+            }
+        }
+
+        function handleCardClick(idx) {
+            if (isRevealed) return;
+            if (selectedT1 === null) selectedT1 = idx;
+            else if (selectedT2 === null) selectedT2 = idx;
+            renderSelections();
+            updateTurnIndicator();
+            updateActionButton();
+        }
+
+        function deselectTeam(team) {
+            if (isRevealed) return;
+            if (team === 1) selectedT1 = null;
+            else selectedT2 = null;
+            renderSelections();
+            updateTurnIndicator();
+            updateActionButton();
+        }
+
+        function renderSelections() {
+            for(let i=0; i<3; i++) {
+                const card = document.getElementById(`card-${i}`);
+                card.classList.remove('selected-t1', 'selected-t2', 'selected-both');
+                document.getElementById(`pill-${i}-t1`).classList.toggle('active', selectedT1 === i);
+                document.getElementById(`pill-${i}-t2`).classList.toggle('active', selectedT2 === i);
+                
+                if (selectedT1 === i && selectedT2 === i) card.classList.add('selected-both');
+                else if (selectedT1 === i) card.classList.add('selected-t1');
+                else if (selectedT2 === i) card.classList.add('selected-t2');
+            }
+        }
+
+        function updateTurnIndicator() {
+            const banner = document.getElementById('turn-banner');
+            if (isRevealed) {
+                banner.innerText = "ERGEBNIS";
+                banner.className = "w-full max-w-md bg-slate-800 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase";
+                return;
+            }
+            if (selectedT1 === null) {
+                banner.innerText = "Team Blau wählt...";
+                banner.className = "w-full max-w-md bg-blue-600 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl shadow-blue-200 transition-all";
+            } else if (selectedT2 === null) {
+                banner.innerText = "Team Rot wählt...";
+                banner.className = "w-full max-w-md bg-red-600 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl shadow-red-200 transition-all";
+            } else {
+                banner.innerText = "Bereit?";
+                banner.className = "w-full max-w-md bg-slate-900 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl transition-all";
+            }
+        }
+
+        function updateActionButton() {
+            const btn = document.getElementById('action-btn');
+            btn.disabled = (selectedT1 === null || selectedT2 === null);
+            btn.style.opacity = btn.disabled ? "0.5" : "1";
+            btn.style.cursor = btn.disabled ? "not-allowed" : "pointer";
+        }
+
+        function handleActionButton() {
+            if (!isRevealed) {
+                isRevealed = true;
+                const correct = questions[currentIdx].correct;
+                if (selectedT1 === correct) scoreT1 += 100;
+                if (selectedT2 === correct) scoreT2 += 100;
+                document.getElementById('score-t1').innerText = scoreT1;
+                document.getElementById('score-t2').innerText = scoreT2;
+                
+                for(let i=0; i<3; i++) {
+                    const card = document.getElementById(`card-${i}`);
+                    const badge = document.getElementById(`badge-${i}`);
+                    if (i === correct) {
+                        card.classList.add('is-correct');
+                        badge.innerText = "Richtig";
+                        badge.className = "result-badge bg-green-600 text-white block";
+                    } else if (selectedT1 === i || selectedT2 === i) {
+                        card.classList.add('is-wrong');
+                        badge.innerText = "Falsch";
+                        badge.className = "result-badge bg-red-600 text-white block";
+                    }
+                }
+                document.getElementById('btn-text').innerText = "Nächste Frage";
+                updateTurnIndicator();
+            } else {
+                if (currentIdx < questions.length - 1) {
+                    currentIdx++;
+                    updateUI();
+                } else {
+                    showEndScreen();
+                }
+            }
+        }
+
+        function showEndScreen() {
+            const winner = scoreT1 > scoreT2 ? "Team Blau" : (scoreT2 > scoreT1 ? "Team Rot" : "Unentschieden");
+            document.querySelector('main').innerHTML = `
+                <div class="glass-card w-full py-20 px-12 text-center mt-8">
+                    <h1 class="text-5xl font-black text-slate-900 mb-6 uppercase tracking-tighter">FINALE!</h1>
+                    <p class="text-2xl font-bold mb-10">${winner} hat die meisten Punkte!</p>
+                    <button onclick="location.reload()" class="bg-slate-900 text-white px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Neustart</button>
+                </div>
+            `;
+        }
+
+        // Initialisierung beim Laden
+        loadQuestions();
+        updateUI();
+    </script>
+</body>
+</html>
