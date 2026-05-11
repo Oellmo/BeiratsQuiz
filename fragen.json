@@ -13,15 +13,15 @@
     "topic": "Demografie",
     "q": "Wer dominiert unsere Patienten-Statistik?",
     "opts": [
-      { "val": "75% Männer", "desc": "Die Herren der Schöpfung geben sich die Klinke in die Hand." },
+      { "val": "25% Frauen", "desc": "Mädchen sind bei uns eher seltene Gäste." },
       { "val": "50% Mix", "desc": "Ein perfekt ausgewogenes Wartezimmer." },
-      { "val": "25% Männer", "desc": "Männer sind hier eher seltene Gäste." }
+      { "val": "75% Frauen", "desc": "Die meisten Patient*innen sind Mäddchen." }
     ],
     "correct": 0
   },
   {
     "topic": "Geografie",
-    "q": "Wie groß ist unser Einzugsgebiet (Nord-Süd)?",
+    "q": "Wie groß ist unser Einzugsgebiet in km²?",
     "opts": [
       { "val": "2.500 km²", "desc": "Ein Katzensprung für unsere Hausbesuche." },
       { "val": "5.000 km²", "desc": "Manche Patienten brauchen ein Lunchpaket für den Weg." },
@@ -31,13 +31,13 @@
   },
   {
     "topic": "Therapie",
-    "q": "Wie viele Stunden Therapie leisten wir im Schnitt pro Fall?",
+    "q": "Wie viele Fachleistungsstunden leisten wir im Schnitt pro Fall?",
     "opts": [
-      { "val": "24 Std.", "desc": "Ein kurzes Gastspiel in unserer Praxis." },
       { "val": "44 Std.", "desc": "Wir lassen unsere Patienten so schnell nicht los!" },
-      { "val": "62 Std.", "desc": "Fast schon eine feste Wohngemeinschaft." }
+      { "val": "62 Std.", "desc": "Fast schon eine feste Wohngemeinschaft." },
+       { "val": "87 Std.", "desc": "Hier haben wir die 'Rund-um-die-Uhr-Betreuung'." }
     ],
-    "correct": 1
+    "correct": 0
   },
   {
     "topic": "Team-Power",
@@ -45,7 +45,7 @@
     "opts": [
       { "val": "18 Jahre", "desc": "Wir sind quasi gerade erst der Ausbildung entstiegen." },
       { "val": "36 Jahre", "desc": "Einige von uns wissen noch, wie man ohne Google therapiert." },
-      { "val": "52 Jahre", "desc": "Wir haben die Physiotherapie vermutlich miterfunden." }
+      { "val": "52 Jahre", "desc": "Wir haben die Autismustherapie vermutlich miterfunden." }
     ],
     "correct": 1
   },
@@ -64,7 +64,7 @@
     "q": "Wie alt war unser ältester Patient?",
     "opts": [
       { "val": "18 Jahre", "desc": "Ein junger Hüpfer im Vergleich zu uns." },
-      { "val": "25 Jahre", "desc": "Mitten im Leben, voll im Saft." },
+      { "val": "25 Jahre", "desc": "Mitten im Leben." },
       { "val": "32 Jahre", "desc": "Die Weisheit kommt mit den Jahren... und den Terminen." }
     ],
     "correct": 1
@@ -73,7 +73,7 @@
     "topic": "Nachwuchs",
     "q": "Wie jung ist unser 'Küken' (jüngster Patient)?",
     "opts": [
-      { "val": "1 Jahr", "desc": "Frisch geschlüpft, aber noch nicht ganz unser Rekord." },
+      { "val": "1 Jahr", "desc": "Frisch geschlüpft und schon unser Rekord." },
       { "val": "3 Jahre", "desc": "Die Welt ist ein Abenteuerspielplatz, auch bei uns." },
       { "val": "5 Jahre", "desc": "Schon fast bereit für die Schultüte." }
     ],
@@ -91,12 +91,12 @@
   },
   {
     "topic": "Diagnostik",
-    "q": "Welcher dieser Bereiche wird im neuen ILK-Fragebogen tatsächlich erfasst?",
+    "q": "Welcher dieser Bereiche wird im 'Fragebogen zur Erfassung der Lebensqualität bei Kindern und Jugendlichen' tatsächlich erfasst?",
     "opts": [
       { "val": "Schule, Familie & Freizeit", "desc": "Die Klassiker des Kinder-Alltags." },
-      { "val": "Ab abuse & psychische Belastung", "desc": "Ein wichtiger Blick auf die Seele." },
+      { "val": "Ernährung & Schlafqualität", "desc": "Klingt gesund." },
       { "val": "Hobbys & Berufswünsche", "desc": "Zukunftsmusik für die Kleinen." }
     ],
-    "correct": 1
+    "correct": 0
   }
 ]
