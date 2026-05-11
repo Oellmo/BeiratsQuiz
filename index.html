@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Therapiezentrum Team-Quiz</title>
+    <title>Vorstands-Team-Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bibliotheken für PDF Generierung -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         
@@ -14,6 +17,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
 
         .glass-card {
@@ -67,6 +71,8 @@
         }
 
         .checkmark-pill.active { transform: scale(1); }
+        .checkmark-pill:hover { filter: brightness(1.2); transform: scale(1.1); }
+
         .bg-team1 { background-color: #2563eb; }
         .bg-team2 { background-color: #dc2626; }
         
@@ -87,20 +93,21 @@
             backdrop-filter: blur(4px);
         }
 
-        /* Druck-spezifische Stile */
-        #print-view { display: none; }
-        @media print {
-            body { background: white !important; }
-            nav, main, #admin-modal, button { display: none !important; }
-            #print-view { display: block !important; padding: 40px; }
-            .print-item { page-break-inside: avoid; border-bottom: 1px solid #ddd; padding: 20px 0; }
-            .print-correct { border: 2px solid #22c55e; background: #f0fdf4; padding: 5px 10px; border-radius: 8px; }
+        .csv-format-box {
+            background: #f1f5f9;
+            border-left: 4px solid #64748b;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #475569;
+            margin-top: 8px;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
+    <!-- Header / Navigation -->
     <nav class="flex items-center justify-between px-10 py-6">
         <div class="flex items-center gap-2">
             <span class="text-2xl font-extrabold tracking-tighter text-blue-900 uppercase">Therapie.Quiz</span>
@@ -121,26 +128,28 @@
                 </div>
             </div>
         </div>
-        <button onclick="toggleAdminModal()" class="w-12 h-12 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center hover:bg-slate-300 transition-colors" title="Einstellungen">⚙️</button>
+        <button onclick="toggleAdminModal()" class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center hover:bg-slate-300 transition-colors" title="Einstellungen">⚙️</button>
     </nav>
 
     <main class="flex-1 flex flex-col items-center px-4 max-w-6xl mx-auto w-full pt-4">
         
-        <div id="turn-banner" class="w-full max-w-md bg-blue-600 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl transition-all">
+        <!-- Status Banner -->
+        <div id="turn-banner" class="w-full max-w-md bg-blue-600 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl shadow-blue-200 transition-all duration-300">
             Team Blau wählt...
         </div>
 
-        <!-- Fragen-Karte -->
+        <!-- Question Card -->
         <div class="glass-card w-full py-12 px-12 text-center relative mb-8">
-            <h2 class="text-xs font-black text-blue-600 uppercase tracking-widest mb-4" id="topic-title">LADEN...</h2>
+            <h2 class="text-xs font-black text-blue-600 uppercase tracking-widest mb-4" id="topic-title">Laden...</h2>
             <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight" id="question-text">Wird geladen...</h1>
         </div>
 
-        <!-- Antwort-Optionen -->
+        <!-- Options Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-10">
+            <!-- Card 0 -->
             <div onclick="handleCardClick(0)" id="card-0" class="answer-card glass-card p-10 text-center flex flex-col items-center justify-center min-h-[220px]">
                 <div id="badge-0" class="result-badge hidden">Richtig</div>
-                <h3 class="text-3xl font-black text-slate-800 mb-2" id="opt0-val">-</h3>
+                <h3 class="text-4xl font-black text-slate-800 mb-2" id="opt0-val">-</h3>
                 <p class="text-sm text-slate-500 font-semibold" id="opt0-desc">-</p>
                 <div class="flex gap-3 mt-4">
                     <div onclick="event.stopPropagation(); deselectTeam(1)" id="pill-0-t1" class="checkmark-pill bg-team1">TEAM 1</div>
@@ -148,9 +157,10 @@
                 </div>
             </div>
 
+            <!-- Card 1 -->
             <div onclick="handleCardClick(1)" id="card-1" class="answer-card glass-card p-10 text-center flex flex-col items-center justify-center min-h-[220px]">
                 <div id="badge-1" class="result-badge hidden">Richtig</div>
-                <h3 class="text-3xl font-black text-slate-800 mb-2" id="opt1-val">-</h3>
+                <h3 class="text-4xl font-black text-slate-800 mb-2" id="opt1-val">-</h3>
                 <p class="text-sm text-slate-500 font-semibold" id="opt1-desc">-</p>
                 <div class="flex gap-3 mt-4">
                     <div onclick="event.stopPropagation(); deselectTeam(1)" id="pill-1-t1" class="checkmark-pill bg-team1">TEAM 1</div>
@@ -158,9 +168,10 @@
                 </div>
             </div>
 
+            <!-- Card 2 -->
             <div onclick="handleCardClick(2)" id="card-2" class="answer-card glass-card p-10 text-center flex flex-col items-center justify-center min-h-[220px]">
                 <div id="badge-2" class="result-badge hidden">Richtig</div>
-                <h3 class="text-3xl font-black text-slate-800 mb-2" id="opt2-val">-</h3>
+                <h3 class="text-4xl font-black text-slate-800 mb-2" id="opt2-val">-</h3>
                 <p class="text-sm text-slate-500 font-semibold" id="opt2-desc">-</p>
                 <div class="flex gap-3 mt-4">
                     <div onclick="event.stopPropagation(); deselectTeam(1)" id="pill-2-t1" class="checkmark-pill bg-team1">TEAM 1</div>
@@ -169,10 +180,10 @@
             </div>
         </div>
 
-        <!-- Footer -->
+        <!-- Footer Info & Action Button -->
         <div class="w-full flex justify-between items-center pb-10">
             <div class="text-sm font-bold text-slate-400">
-                FRAGE <span id="current-q-num">1</span>/<span id="total-q-num">1</span>
+                FRAGE <span id="current-q-num">1</span>/<span id="total-q-num">3</span>
             </div>
             
             <button onclick="handleActionButton()" id="action-btn" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black hover:bg-blue-700 transition-all flex items-center gap-3 uppercase tracking-widest shadow-2xl opacity-50 cursor-not-allowed" disabled>
@@ -181,43 +192,57 @@
         </div>
     </main>
 
-    <!-- Druck-Ansicht (Hidden) -->
-    <div id="print-view">
-        <div style="border-bottom: 4px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 30px;">
-            <h1 style="font-size: 28px; font-weight: 800; color: #1e3a8a; text-transform: uppercase;">Therapiezentrum Team-Quiz Handout</h1>
-            <p style="font-size: 14px; color: #64748b;">Übersicht aller Fragen und korrekten Antworten</p>
-        </div>
-        <div id="print-list"></div>
-    </div>
-
     <!-- Admin Modal -->
     <div id="admin-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
         <div class="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             <div class="p-6 border-b flex justify-between items-start bg-slate-50">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800">Quiz-Management</h2>
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-slate-800">Fragen verwalten</h2>
                     <p class="text-[10px] text-blue-600 mt-1 uppercase font-black tracking-wider">🔒 Lokal auf diesem Rechner gespeichert</p>
+                    
+                    <div class="csv-format-box">
+                        <strong>CSV Aufbau (Semikolon-getrennt):</strong><br>
+                        Thema; Frage; Wert1; Erklär1; Wert2; Erklär2; Wert3; Erklär3; KorrektIndex(0-2)
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="generatePrintView()" class="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all">Druck-Ansicht (PDF)</button>
-                    <label class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-blue-700 transition-all">
+                <div class="flex flex-wrap gap-2 ml-4">
+                    <button onclick="downloadQuestionsPDF()" class="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 shadow-sm transition-all active:scale-95">PDF Export</button>
+                    <label class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-blue-700 shadow-sm transition-all active:scale-95">
                         CSV Import
                         <input type="file" id="csv-file" accept=".csv" class="hidden" onchange="importCSV(this)">
                     </label>
+                    <button onclick="addNewQuestion()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 shadow-sm active:scale-95 transition-all">+ Frage</button>
                     <button onclick="toggleAdminModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold px-2">&times;</button>
                 </div>
             </div>
-            <div id="questions-list" class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50">
-                <!-- Fragen werden hier gelistet -->
+            <div id="questions-list" class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+                <!-- Fragen Liste wird hier generiert -->
             </div>
-            <div class="p-6 border-t bg-slate-50 flex justify-end gap-3">
-                <button onclick="toggleAdminModal()" class="px-6 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-200">Abbrechen</button>
-                <button onclick="saveAllQuestions()" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-blue-900">Speichern & Quiz Starten</button>
+            <div class="p-6 border-t bg-slate-50 flex justify-between items-center">
+                <button onclick="resetToDefault()" class="text-xs font-bold text-red-500 uppercase hover:underline">Alle löschen & Reset</button>
+                <div class="flex gap-3">
+                    <button onclick="toggleAdminModal()" class="px-6 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-all">Abbrechen</button>
+                    <button onclick="saveAllQuestions()" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-blue-900 transition-all active:scale-95">Speichern & Quiz Starten</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Standardfragen als Fallback
+        const DEFAULT_QUESTIONS = [
+            {
+                topic: "Statistik",
+                q: "Wie viele Behandlungen gab es letztes Jahr?",
+                opts: [
+                    { val: "8.420", desc: "Etwas weniger" },
+                    { val: "12.150", desc: "Unser Höchstwert" },
+                    { val: "10.800", desc: "Guter Durchschnitt" }
+                ],
+                correct: 1
+            }
+        ];
+
         let questions = [];
         let currentIdx = 0;
         let scoreT1 = 0;
@@ -226,38 +251,186 @@
         let selectedT2 = null;
         let isRevealed = false;
 
-        function loadData() {
+        // --- LocalStorage Logik ---
+
+        function loadQuestions() {
             const saved = localStorage.getItem('therapy_quiz_questions');
             if (saved) {
-                questions = JSON.parse(saved);
+                try {
+                    questions = JSON.parse(saved);
+                } catch(e) {
+                    questions = [...DEFAULT_QUESTIONS];
+                }
             } else {
-                questions = [{
-                    topic: "Statistik", q: "Frage laden...", 
-                    opts: [{val:"A", desc:""}, {val:"B", desc:""}, {val:"C", desc:""}], 
-                    correct: 1
-                }];
+                questions = [...DEFAULT_QUESTIONS];
             }
         }
+
+        function persistQuestions() {
+            localStorage.setItem('therapy_quiz_questions', JSON.stringify(questions));
+        }
+
+        function resetToDefault() {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = "fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4";
+            modalOverlay.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+                    <h3 class="text-xl font-bold mb-4">Wirklich zurücksetzen?</h3>
+                    <p class="text-slate-600 mb-6">Alle manuell eingegebenen Fragen gehen verloren.</p>
+                    <div class="flex gap-3 justify-center">
+                        <button id="cancel-reset" class="px-4 py-2 rounded-xl font-bold bg-slate-100 hover:bg-slate-200">Abbrechen</button>
+                        <button id="confirm-reset" class="px-4 py-2 rounded-xl font-bold bg-red-500 text-white hover:bg-red-600">Ja, löschen</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalOverlay);
+            
+            document.getElementById('cancel-reset').onclick = () => modalOverlay.remove();
+            document.getElementById('confirm-reset').onclick = () => {
+                questions = [...DEFAULT_QUESTIONS];
+                persistQuestions();
+                renderAdminQuestions();
+                saveAllQuestions();
+                modalOverlay.remove();
+            };
+        }
+
+        // --- PDF Export Funktion ---
+
+        function downloadQuestionsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFontSize(20);
+            doc.setTextColor(30, 58, 138); // Blue-900
+            doc.text("Therapie.Quiz - Fragenkatalog", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Erstellt am: ${new Date().toLocaleDateString('de-DE')} | Fragenanzahl: ${questions.length}`, 14, 28);
+
+            const tableData = [];
+            questions.forEach((q, idx) => {
+                // Erstelle formatierten Antwort-String
+                const answers = q.opts.map((opt, oIdx) => {
+                    const prefix = (q.correct === oIdx) ? "[RICHTIG] " : "";
+                    return `${prefix}${opt.val}${opt.desc ? ' (' + opt.desc + ')' : ''}`;
+                }).join('\n');
+
+                tableData.push([
+                    idx + 1,
+                    q.topic,
+                    q.q,
+                    answers
+                ]);
+            });
+
+            doc.autoTable({
+                startY: 35,
+                head: [['#', 'Thema', 'Frage', 'Antworten (Lösung markiert)']],
+                body: tableData,
+                headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [245, 247, 250] },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    1: { cellWidth: 30 },
+                    2: { cellWidth: 60 },
+                    3: { cellWidth: 'auto' }
+                },
+                styles: { fontSize: 9, cellPadding: 5 },
+                didParseCell: function(data) {
+                    // Falls der Text "[RICHTIG]" enthält, machen wir die Zelle etwas grüner
+                    if (data.column.index === 3 && data.cell.text.some(t => t.includes("[RICHTIG]"))) {
+                        // Wir lassen die Formatierung hier simpel, da jspdf-autotable kein inline rich text kann
+                    }
+                }
+            });
+
+            doc.save("Fragenkatalog_Vorstands_Quiz.pdf");
+        }
+
+        // --- Admin Menü Funktionen ---
 
         function toggleAdminModal() {
             const modal = document.getElementById('admin-modal');
             modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) renderAdminList();
+            if (!modal.classList.contains('hidden')) {
+                renderAdminQuestions();
+            }
         }
 
-        function renderAdminList() {
+        function renderAdminQuestions() {
             const list = document.getElementById('questions-list');
             list.innerHTML = '';
-            questions.forEach((q, idx) => {
-                const item = document.createElement('div');
-                item.className = "p-4 bg-white border rounded-xl shadow-sm";
-                item.innerHTML = `<div class="flex justify-between font-bold text-sm mb-1 text-slate-700">
-                    <span>#${idx + 1} - ${q.topic}</span>
-                    <span class="text-green-600">Lösung: ${q.opts[q.correct].val}</span>
-                </div>
-                <div class="text-xs text-slate-500">${q.q}</div>`;
-                list.appendChild(item);
+            
+            questions.forEach((q, qIdx) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "p-6 border border-slate-200 rounded-2xl bg-white shadow-sm relative";
+                qDiv.innerHTML = `
+                    <button onclick="removeQuestion(${qIdx})" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Löschen</button>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Kategorie</label>
+                            <input type="text" value="${q.topic}" oninput="updateTempQuestion(${qIdx}, 'topic', this.value)" class="w-full p-2 border rounded-lg bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Frage</label>
+                            <input type="text" value="${q.q}" oninput="updateTempQuestion(${qIdx}, 'q', this.value)" class="w-full p-2 border rounded-lg bg-slate-50">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        ${q.opts.map((opt, oIdx) => `
+                            <div class="p-3 border rounded-xl ${q.correct === oIdx ? 'bg-green-50 border-green-300' : 'bg-white'}">
+                                <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                                    <input type="radio" name="correct-${qIdx}" ${q.correct === oIdx ? 'checked' : ''} onchange="updateTempQuestion(${qIdx}, 'correct', ${oIdx})">
+                                    <span class="text-[10px] font-bold uppercase text-slate-500">Antwort ${oIdx+1}</span>
+                                </label>
+                                <input type="text" value="${opt.val}" placeholder="Wert" oninput="updateTempOption(${qIdx}, ${oIdx}, 'val', this.value)" class="w-full p-2 border rounded-lg mb-1 text-sm font-bold">
+                                <input type="text" value="${opt.desc}" placeholder="Erklärung" oninput="updateTempOption(${qIdx}, ${oIdx}, 'desc', this.value)" class="w-full p-2 border rounded-lg text-xs italic">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                list.appendChild(qDiv);
             });
+        }
+
+        function updateTempQuestion(qIdx, field, value) {
+            questions[qIdx][field] = value;
+            if(field === 'correct') renderAdminQuestions();
+        }
+
+        function updateTempOption(qIdx, oIdx, field, value) {
+            questions[qIdx].opts[oIdx][field] = value;
+        }
+
+        function addNewQuestion() {
+            questions.push({
+                topic: "Neues Thema",
+                q: "Neue Frage?",
+                opts: [{val:"",desc:""},{val:"",desc:""},{val:"",desc:""}],
+                correct: 0
+            });
+            renderAdminQuestions();
+        }
+
+        function removeQuestion(idx) {
+            if(questions.length > 1) {
+                questions.splice(idx, 1);
+                renderAdminQuestions();
+            }
+        }
+
+        function saveAllQuestions() {
+            persistQuestions();
+            currentIdx = 0;
+            scoreT1 = 0;
+            scoreT2 = 0;
+            document.getElementById('score-t1').innerText = "0";
+            document.getElementById('score-t2').innerText = "0";
+            toggleAdminModal();
+            updateUI();
         }
 
         function importCSV(input) {
@@ -269,48 +442,46 @@
                 const rows = text.split(/\r?\n/);
                 const imported = [];
                 rows.forEach(row => {
+                    if (!row.trim()) return;
                     const cols = row.split(';');
                     if (cols.length >= 9) {
                         imported.push({
-                            topic: cols[0].trim(), q: cols[1].trim(),
+                            topic: cols[0].trim(),
+                            q: cols[1].trim(),
                             opts: [
                                 { val: cols[2].trim(), desc: cols[3].trim() },
                                 { val: cols[4].trim(), desc: cols[5].trim() },
                                 { val: cols[6].trim(), desc: cols[7].trim() }
                             ],
-                            correct: parseInt(cols[8].trim())
+                            correct: parseInt(cols[8].trim()) || 0
                         });
                     }
                 });
                 if (imported.length > 0) {
                     questions = imported;
-                    renderAdminList();
+                    renderAdminQuestions();
                 }
             };
             reader.readAsText(file);
         }
 
-        function saveAllQuestions() {
-            localStorage.setItem('therapy_quiz_questions', JSON.stringify(questions));
-            currentIdx = 0; scoreT1 = 0; scoreT2 = 0;
-            updateUI();
-            toggleAdminModal();
-        }
+        // --- Spiellogik ---
 
         function updateUI() {
-            if (!questions[currentIdx]) return;
+            if (questions.length === 0) return;
             const q = questions[currentIdx];
             document.getElementById('topic-title').innerText = q.topic;
             document.getElementById('question-text').innerText = q.q;
             document.getElementById('current-q-num').innerText = currentIdx + 1;
             document.getElementById('total-q-num').innerText = questions.length;
-            document.getElementById('score-t1').innerText = scoreT1;
-            document.getElementById('score-t2').innerText = scoreT2;
             
-            selectedT1 = null; selectedT2 = null; isRevealed = false;
+            selectedT1 = null;
+            selectedT2 = null;
+            isRevealed = false;
+            
             document.getElementById('btn-text').innerText = "Auflösung anzeigen";
-            resetCards();
             updateTurnIndicator();
+            resetCards();
             updateActionButton();
         }
 
@@ -338,7 +509,8 @@
 
         function deselectTeam(team) {
             if (isRevealed) return;
-            if (team === 1) selectedT1 = null; else selectedT2 = null;
+            if (team === 1) selectedT1 = null;
+            else selectedT2 = null;
             renderSelections();
             updateTurnIndicator();
             updateActionButton();
@@ -350,6 +522,7 @@
                 card.classList.remove('selected-t1', 'selected-t2', 'selected-both');
                 document.getElementById(`pill-${i}-t1`).classList.toggle('active', selectedT1 === i);
                 document.getElementById(`pill-${i}-t2`).classList.toggle('active', selectedT2 === i);
+                
                 if (selectedT1 === i && selectedT2 === i) card.classList.add('selected-both');
                 else if (selectedT1 === i) card.classList.add('selected-t1');
                 else if (selectedT2 === i) card.classList.add('selected-t2');
@@ -359,19 +532,19 @@
         function updateTurnIndicator() {
             const banner = document.getElementById('turn-banner');
             if (isRevealed) {
-                banner.innerText = "Ergebnis";
-                banner.className = "w-full max-w-md bg-slate-800 text-white text-center py-3 rounded-2xl mb-8 font-bold uppercase";
+                banner.innerText = "ERGEBNIS";
+                banner.className = "w-full max-w-md bg-slate-800 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase";
+                return;
+            }
+            if (selectedT1 === null) {
+                banner.innerText = "Team Blau wählt...";
+                banner.className = "w-full max-w-md bg-blue-600 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl shadow-blue-200 transition-all";
+            } else if (selectedT2 === null) {
+                banner.innerText = "Team Rot wählt...";
+                banner.className = "w-full max-w-md bg-red-600 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl shadow-red-200 transition-all";
             } else {
-                if (selectedT1 === null) {
-                    banner.innerText = "Team Blau wählt...";
-                    banner.className = "w-full max-w-md bg-blue-600 text-white text-center py-3 rounded-2xl mb-8 font-bold uppercase shadow-xl shadow-blue-200";
-                } else if (selectedT2 === null) {
-                    banner.innerText = "Team Rot wählt...";
-                    banner.className = "w-full max-w-md bg-red-600 text-white text-center py-3 rounded-2xl mb-8 font-bold uppercase shadow-xl shadow-red-200";
-                } else {
-                    banner.innerText = "Bereit für die Auflösung?";
-                    banner.className = "w-full max-w-md bg-slate-900 text-white text-center py-3 rounded-2xl mb-8 font-bold uppercase shadow-xl";
-                }
+                banner.innerText = "Bereit?";
+                banner.className = "w-full max-w-md bg-slate-900 text-white text-center py-3 rounded-2xl mb-8 font-bold text-sm tracking-widest uppercase shadow-xl transition-all";
             }
         }
 
@@ -396,6 +569,7 @@
                     const badge = document.getElementById(`badge-${i}`);
                     if (i === correct) {
                         card.classList.add('is-correct');
+                        badge.innerText = "Richtig";
                         badge.className = "result-badge bg-green-600 text-white block";
                     } else if (selectedT1 === i || selectedT2 === i) {
                         card.classList.add('is-wrong');
@@ -410,47 +584,24 @@
                     currentIdx++;
                     updateUI();
                 } else {
-                    showEnd();
+                    showEndScreen();
                 }
             }
         }
 
-        function showEnd() {
-            const main = document.querySelector('main');
+        function showEndScreen() {
             const winner = scoreT1 > scoreT2 ? "Team Blau" : (scoreT2 > scoreT1 ? "Team Rot" : "Unentschieden");
-            main.innerHTML = `<div class="glass-card w-full py-20 text-center mt-10">
-                <h1 class="text-4xl font-black mb-4">GLÜCKWUNSCH!</h1>
-                <p class="text-xl font-bold mb-8">${winner} hat das Quiz gewonnen!</p>
-                <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-xl font-bold">NEUSTART</button>
-            </div>`;
+            document.querySelector('main').innerHTML = `
+                <div class="glass-card w-full py-20 px-12 text-center mt-8">
+                    <h1 class="text-5xl font-black text-slate-900 mb-6 uppercase tracking-tighter">FINALE!</h1>
+                    <p class="text-2xl font-bold mb-10">${winner} hat die meisten Punkte!</p>
+                    <button onclick="location.reload()" class="bg-slate-900 text-white px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Neustart</button>
+                </div>
+            `;
         }
 
-        function generatePrintView() {
-            const printList = document.getElementById('print-list');
-            printList.innerHTML = '';
-            
-            questions.forEach((q, idx) => {
-                const div = document.createElement('div');
-                div.className = 'print-item';
-                div.innerHTML = `
-                    <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Frage ${idx + 1}: ${q.q}</h3>
-                    <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Kategorie: ${q.topic}</p>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                        ${q.opts.map((o, i) => `
-                            <div class="${q.correct === i ? 'print-correct' : ''}" style="padding: 10px; border: 1px solid #eee; border-radius: 8px;">
-                                <strong style="display: block;">${o.val}</strong>
-                                <small style="color: #777;">${o.desc}</small>
-                                ${q.correct === i ? '<br><small style="color: green; font-weight: bold;">(RICHTIGE ANTWORT)</small>' : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                printList.appendChild(div);
-            });
-            window.print();
-        }
-
-        loadData();
+        // Initialisierung beim Laden
+        loadQuestions();
         updateUI();
     </script>
 </body>
