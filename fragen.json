@@ -1,0 +1,102 @@
+[
+  {
+    "topic": "Patienten",
+    "q": "Wie viele Patienten haben wir insgesamt im letzten Jahr betreut?",
+    "opts": [
+      { "val": "112", "desc": "Fühlt sich nach einem ruhigen Montag an." },
+      { "val": "152", "desc": "Jede Menge Arbeit für unsere Hände!" },
+      { "val": "184", "desc": "Haben wir überhaupt so viele Aktenordner?" }
+    ],
+    "correct": 1
+  },
+  {
+    "topic": "Demografie",
+    "q": "Wer dominiert unsere Patienten-Statistik?",
+    "opts": [
+      { "val": "75% Männer", "desc": "Die Herren der Schöpfung geben sich die Klinke in die Hand." },
+      { "val": "50% Mix", "desc": "Ein perfekt ausgewogenes Wartezimmer." },
+      { "val": "25% Männer", "desc": "Männer sind hier eher seltene Gäste." }
+    ],
+    "correct": 0
+  },
+  {
+    "topic": "Geografie",
+    "q": "Wie groß ist unser Einzugsgebiet (Nord-Süd)?",
+    "opts": [
+      { "val": "2.500 km²", "desc": "Ein Katzensprung für unsere Hausbesuche." },
+      { "val": "5.000 km²", "desc": "Manche Patienten brauchen ein Lunchpaket für den Weg." },
+      { "val": "7.000 km²", "desc": "Wir therapieren gefühlt bis zum Horizont und weiter." }
+    ],
+    "correct": 2
+  },
+  {
+    "topic": "Therapie",
+    "q": "Wie viele Stunden Therapie leisten wir im Schnitt pro Fall?",
+    "opts": [
+      { "val": "24 Std.", "desc": "Ein kurzes Gastspiel in unserer Praxis." },
+      { "val": "44 Std.", "desc": "Wir lassen unsere Patienten so schnell nicht los!" },
+      { "val": "62 Std.", "desc": "Fast schon eine feste Wohngemeinschaft." }
+    ],
+    "correct": 1
+  },
+  {
+    "topic": "Team-Power",
+    "q": "Wie viele Jahre Berufserfahrung bündelt unser Team?",
+    "opts": [
+      { "val": "18 Jahre", "desc": "Wir sind quasi gerade erst der Ausbildung entstiegen." },
+      { "val": "36 Jahre", "desc": "Einige von uns wissen noch, wie man ohne Google therapiert." },
+      { "val": "52 Jahre", "desc": "Wir haben die Physiotherapie vermutlich miterfunden." }
+    ],
+    "correct": 1
+  },
+  {
+    "topic": "Zentrum",
+    "q": "Welcher Wochentag ist unser 'Haus voll'-Tag?",
+    "opts": [
+      { "val": "Dienstag", "desc": "Der Tag, an dem der Kaffee am schnellsten leer ist." },
+      { "val": "Mittwoch", "desc": "Die Bergfest-Stimmung lockt sie alle an." },
+      { "val": "Donnerstag", "desc": "Kurz vor dem Wochenende wollen es alle nochmal wissen." }
+    ],
+    "correct": 2
+  },
+  {
+    "topic": "Patienten",
+    "q": "Wie alt war unser ältester Patient?",
+    "opts": [
+      { "val": "18 Jahre", "desc": "Ein junger Hüpfer im Vergleich zu uns." },
+      { "val": "25 Jahre", "desc": "Mitten im Leben, voll im Saft." },
+      { "val": "32 Jahre", "desc": "Die Weisheit kommt mit den Jahren... und den Terminen." }
+    ],
+    "correct": 1
+  },
+  {
+    "topic": "Nachwuchs",
+    "q": "Wie jung ist unser 'Küken' (jüngster Patient)?",
+    "opts": [
+      { "val": "1 Jahr", "desc": "Frisch geschlüpft, aber noch nicht ganz unser Rekord." },
+      { "val": "3 Jahre", "desc": "Die Welt ist ein Abenteuerspielplatz, auch bei uns." },
+      { "val": "5 Jahre", "desc": "Schon fast bereit für die Schultüte." }
+    ],
+    "correct": 1
+  },
+  {
+    "topic": "Leistung",
+    "q": "Wie viele Therapiestunden haben wir insgesamt geleistet?",
+    "opts": [
+      { "val": "4.200", "desc": "Ein solider Anfang." },
+      { "val": "5.800", "desc": "Fleißig, fleißig!" },
+      { "val": "7.100", "desc": "Wir haben quasi im Behandlungszimmer übernachtet." }
+    ],
+    "correct": 2
+  },
+  {
+    "topic": "Diagnostik",
+    "q": "Welcher dieser Bereiche wird im neuen ILK-Fragebogen tatsächlich erfasst?",
+    "opts": [
+      { "val": "Schule, Familie & Freizeit", "desc": "Die Klassiker des Kinder-Alltags." },
+      { "val": "Ab abuse & psychische Belastung", "desc": "Ein wichtiger Blick auf die Seele." },
+      { "val": "Hobbys & Berufswünsche", "desc": "Zukunftsmusik für die Kleinen." }
+    ],
+    "correct": 1
+  }
+]
