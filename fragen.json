@@ -41,7 +41,7 @@
   },
   {
     "topic": "Team-Power",
-    "q": "Wie viele Jahre Berufserfahrung bündelt unser Team?",
+    "q": "Wie viele Jahre Berufserfahrung im Autismuszentrum bündelt unser Team?",
     "opts": [
       { "val": "18 Jahre", "desc": "Wir sind quasi gerade erst der Ausbildung entstiegen." },
       { "val": "36 Jahre", "desc": "Einige von uns wissen noch, wie man ohne Google therapiert." },
@@ -59,15 +59,15 @@
     ],
     "correct": 2
   },
-  {
-    "topic": "Patienten",
-    "q": "Wie alt war unser ältester Patient?",
+{
+    "topic": "Bürokratie",
+    "q": "Mit wie vielen verschiedenen Kostenträgern arbeiten wir zusammen?",
     "opts": [
-      { "val": "18 Jahre", "desc": "Ein junger Hüpfer im Vergleich zu uns." },
-      { "val": "25 Jahre", "desc": "Mitten im Leben." },
-      { "val": "32 Jahre", "desc": "Die Weisheit kommt mit den Jahren... und den Terminen." }
+      { "val": "10", "desc": "Ein überschaubarer Stapel auf dem Schreibtisch." },
+      { "val": "20", "desc": "Langsam wird es unübersichtlich in der Ablage." },
+      { "val": "30", "desc": "Wir sind quasi die Schnittstelle des deutschen Sozialstaats." }
     ],
-    "correct": 1
+    "correct": 2
   },
   {
     "topic": "Nachwuchs",
